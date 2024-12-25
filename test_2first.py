@@ -78,27 +78,37 @@ def get_post(article_links):
                 print(f"请求失败: {e}")
                 continue
 
-            # 构建bs4解析器，解析 HTML 内容
+            # 假设 response 是请求得到的 HTML 响应
             soup = BeautifulSoup(response.text, 'html.parser')
-            # print(soup)
+
+            # 查找文章容器
             article = soup.find('div', class_='article-box')
+
+            # 初始化标题、内容、图片 URL
+            title = ''
+            content = ''
+            img_url = ''
+
             if article:
                 # 提取文章标题
-                title = article.find('h1', class_='harmony-bold title').text.strip() if article.find('h1', class_='harmony-bold title') else ''
-                # 提取文章内容
-                content = article.find('div', class_='ck content').text.strip() if article.find('div', class_='ck content') else ''
-                # 检查 img 元素是否存在
-                img_tag = article.find('img')
-                if img_tag and 'src' in img_tag.attrs:
-                    img_url = "https://static.2firsts.com/uploads" + img_tag['src']
-                else:
-                    img_url = ''
+                title_tag = article.find('h1', class_='harmony-bold title')
+                title = title_tag.text.strip() if title_tag else ''
 
+                # 提取所有 ck content 的文本内容
+                content_tags = article.find_all('div', class_='ck content')
+                content = "\n".join(tag.get_text(strip=True) for tag in content_tags) if content_tags else ''
+
+                # 查找第一个 <figure class="image"> 下的 <img> 标签
+                img_tag = article.find('div', class_='image').find('img') if article.find('div',class_='image') else ''
+                if img_tag and 'data-src' in img_tag.attrs:
+                    img_url = img_tag['data-src']
+                else:
+                    img_url = ''  # 无图则以空值处理
                 # 写入 CSV 文件
                 writer.writerow([article_id, title, content, url, img_url])
                 print(f"写入文章 ID: {article_id}, 标题: {title}")
+                # 更新文章 ID
                 article_id += 1
-
             # 延迟，避免被封禁
             time.sleep(random.uniform(1, 3))
 
