@@ -29,7 +29,6 @@ Requsets模块：python中原生的一款基于网络请求的模块，模拟浏
 import requests
 import time
 
-
 def baidu_search(keyword):
     # 使用Session保持会话
     session = requests.Session()
